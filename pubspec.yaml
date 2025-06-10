@@ -1,0 +1,34 @@
+name: skin_match
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences:
+  carousel_slider: ^4.2.1  
+  firebase_core: ^2.31.1
+  http: ^1.4.0
+  cloud_firestore: ^4.17.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - images/
+  fonts:
+    - family: DeliciousHandrawn
+      fonts:
+        - asset: fonts/DeliciousHandrawn-Regular.ttf
+    - family: FleurDeLeah
+      fonts:
+        - asset: fonts/FleurDeLeah-Regular.ttf
+        

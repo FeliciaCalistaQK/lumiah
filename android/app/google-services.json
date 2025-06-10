@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "956659056108",
+    "firebase_url": "https://skinmatch-8d88b-default-rtdb.firebaseio.com",
+    "project_id": "skinmatch-8d88b",
+    "storage_bucket": "skinmatch-8d88b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:956659056108:android:c506b90a0f20f2a01254c9",
+        "android_client_info": {
+          "package_name": "com.example.skin_match"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJWJFvyge_1XAYI2ErbswC0gd18WfnzgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
