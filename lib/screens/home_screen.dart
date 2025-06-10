@@ -1,13 +1,58 @@
 import 'package:flutter/material.dart';
-
-import 'package:skin_match/screens/search_screen.dart';  
-import 'package:carousel_slider/carousel_slider.dart';  // Import CarouselSlider
 import 'package:skin_match/screens/search_screen.dart';
 
 
+import 'dart:async'; // Diperlukan untuk Timer (autoplay)
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final PageController _pageController = PageController(initialPage: 0);
+  int _currentPage = 0;
+  Timer? _timer;
+
+  // Daftar gambar untuk carousel
+  final List<String> carouselImages = [
+    'images/skintific.jpg',
+    'images/ser.jpg',
+    'images/set.jpg',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi autoplay
+    _startAutoPlay();
+  }
+
+  void _startAutoPlay() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+      if (_pageController.hasClients) { // Pastikan PageController sudah terpasang ke PageView
+        if (_currentPage < carouselImages.length - 1) {
+          _currentPage++;
+        } else {
+          _currentPage = 0; // Kembali ke halaman pertama setelah slide terakhir
+        }
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeIn,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Pastikan timer dibatalkan saat widget di dispose
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +77,14 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                onTap: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => const SearchScreen(),
-                  //   ),
-                  // );
-                },
+                // onTap: () {
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => const SearchScreen(),
+                //     ),
+                //   );
+                // },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   height: 50,
@@ -47,8 +92,8 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.pink[50],
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(Icons.search, color: Colors.pink),
                       SizedBox(width: 10),
                       Text(
@@ -61,23 +106,43 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // CarouselSlider
-              CarouselSlider(
-                options: CarouselOptions(
-                  height: 380,
-                  autoPlay: true,
-                  enlargeCenterPage: true,
-                  aspectRatio: 1.5,
-                  viewportFraction: 1.0,
+              // Custom Carousel dengan PageView
+              SizedBox( // Menggunakan SizedBox untuk menentukan tinggi PageView
+                height: 380, // Sesuaikan dengan tinggi CarouselOptions sebelumnya
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: carouselImages.length,
+                  onPageChanged: (int page) {
+                    setState(() {
+                      _currentPage = page;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return _buildCarouselItem(carouselImages[index]);
+                  },
                 ),
-                items: [
-                  _buildCarouselItem('images/skintific.jpg'),
-                  _buildCarouselItem('images/ser.jpg'),
-                  _buildCarouselItem('images/set.jpg'),
-                ],
               ),
 
+              // Indikator titik (dots indicator) untuk PageView
+              const SizedBox(height: 10), // Sedikit jarak dari carousel
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(carouselImages.length, (index) {
+                  return Container(
+                    width: 8.0,
+                    height: 8.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentPage == index
+                          ? Colors.pink // Warna untuk halaman aktif
+                          : Colors.grey.withOpacity(0.5), // Warna untuk halaman tidak aktif
+                    ),
+                  );
+                }),
+              ),
               const SizedBox(height: 20),
+
               const Text(
                 'Trending Product',
                 style: TextStyle(
@@ -126,7 +191,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Widget for Carousel Item
+  // Widget for Carousel Item (digunakan oleh PageView)
   Widget _buildCarouselItem(String imagePath) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 5),
@@ -140,13 +205,13 @@ class HomeScreen extends StatelessWidget {
           imagePath,
           fit: BoxFit.cover,
           width: double.infinity,
-          height: 250,
+          // Tinggi sudah diatur oleh SizedBox di atas PageView
         ),
       ),
     );
   }
 
-  // Widget for Trending Product
+  // Widget for Trending Product (tidak berubah)
   Widget _buildTrendingProduct({
     required String userName,
     required int userAge,
@@ -175,7 +240,6 @@ class HomeScreen extends StatelessWidget {
               height: 150,
               width: 150,
               decoration: BoxDecoration(
-                
                 color: Colors.pink[50],
                 image: DecorationImage(
                   image: AssetImage(productImage),
@@ -241,25 +305,22 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    
                     ],
-                    
                   ),
-                    Text(
-                        'Usage: $usagePeriod',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                       Text(
-                    'Purchase Point: $purchasePoint',
+                  Text(
+                    'Usage: $usagePeriod',
                     style: const TextStyle(
-                     fontSize: 12,
-                          color: Colors.grey,
+                      fontSize: 12,
+                      color: Colors.grey,
                     ),
                   ),
-                 
+                  Text(
+                    'Purchase Point: $purchasePoint',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ],
               ),
             ),
