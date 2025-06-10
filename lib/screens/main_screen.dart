@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
   static List<Widget> _screenOptions = <Widget>[
     HomeScreen(),
     const ExploreScreen(),
-    // const FavoriteScreen(),
+    const FavoriteScreen(),
     const ProfileScreen(),
    
   ];

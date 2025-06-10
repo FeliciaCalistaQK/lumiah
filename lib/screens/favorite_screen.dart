@@ -1,119 +1,141 @@
-// import 'package:flutter/material.dart';
-// import 'package:skin_match/data/product_data.dart';
-// import 'package:skin_match/models/product.dart';
-// import 'package:skin_match/screens/detail_screen.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:skin_match/models/product.dart';
+import 'detail_screen.dart';
 
-// class FavoriteScreen extends StatefulWidget {
-//   const FavoriteScreen({super.key});
+class FavoriteScreen extends StatefulWidget {
+  const FavoriteScreen({super.key});
 
-//   @override
-//   State<FavoriteScreen> createState() => _FavoriteScreenState();
-// }
+  @override
+  State<FavoriteScreen> createState() => _FavoriteScreenState();
+}
 
-// class _FavoriteScreenState extends State<FavoriteScreen> {
-//   List<Product> _favoriteProducts = [];
+class _FavoriteScreenState extends State<FavoriteScreen> {
+  List<Product> _favoriteProducts = [];
+  bool _isLoading = true;
 
-//   Future<void> _loadFavoriteProduct() async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     List<String> favoriteProductNames = prefs.getStringList('favoriteProducts') ?? [];
+  Future<void> _loadFavoriteProducts() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> favoriteProductIds = prefs.getStringList('favoriteProducts') ?? [];
 
-//     setState(() {
-//       _favoriteProducts = productsByCategory.entries
-//           .expand((entry) => entry.value)  // Meratakan semua produk
-//           .where((product) => favoriteProductNames.contains(product.name))  // Filter berdasarkan nama
-//           .toList();  // Mengubah hasil menjadi List<Product>
-//     });
+    if (favoriteProductIds.isEmpty) {
+      setState(() {
+        _favoriteProducts = [];
+        _isLoading = false;
+      });
+      return;
+    }
 
-//   }
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .where('id', whereIn: favoriteProductIds)
+          .get();
 
-//   @override
-//   void initState() {
-//     // TODO: implement initState
-//     super.initState();
-//     _loadFavoriteProduct();
-//   }
+      List<Product> products = snapshot.docs.map((doc) {
+        return Product.fromJson(doc.data() as Map<String, dynamic>);
+      }).toList();
 
-//   @override
-//    Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: Colors.white,
-//         elevation: 0,
-//         title: const Text(
-//           'SkinMatch',
-//           style: TextStyle(
-//             color: Colors.pink,
-//             fontFamily: 'FleurDeLeah',
-//             fontSize: 24,
-//           ),
-//         ),
-//         centerTitle: true,
-       
-//       ),
-//       body: SafeArea(
-//           child: SingleChildScrollView(
-//         child: Column(
-//           children: [
-//             GridView.builder(
-//               shrinkWrap: true,
-//               physics: const NeverScrollableScrollPhysics(),
-//               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-//                   crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8),
-//               padding: const EdgeInsets.all(8),
-//               itemCount: _favoriteProducts.length,
-//               itemBuilder: (context, index) {
-//                 Product product = _favoriteProducts[index];
-//                 return InkWell(
-//                   onTap: () {
-//                     Navigator.push(
-//                         context,
-//                         MaterialPageRoute(
-//                             builder: (context) =>
-//                                 DetailScreen(detail:product)));
-//                   },
-//                   child: Card(
-//                       shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(16)),
-//                       margin: const EdgeInsets.all(6),
-//                       elevation: 1,
-//                       child: Column(
-//                         crossAxisAlignment: CrossAxisAlignment.stretch,
-//                         children: [
-//                           // Gambar 
-//                           Expanded(
-//                               child: ClipRRect(
-//                             borderRadius: BorderRadius.circular(16),
-//                             child: Image.network(
-//                               product.image,
-//                               fit: BoxFit.cover,
-//                             ),
-//                           )),
-//                           // Nama 
-//                           Padding(
-//                             padding: const EdgeInsets.only(left: 16, top: 8),
-//                             child: Text(
-//                               product.name,
-//                               style: const TextStyle(
-//                                   fontSize: 16, fontWeight: FontWeight.bold),
-//                             ),
-//                           ),
-//                         //harga
-//                           Padding(
-//                             padding: const EdgeInsets.only(left: 16, bottom: 8),
-//                             child: Text(
-//                               product.harga,
-//                               style: const TextStyle(fontSize: 12),
-//                             ),
-//                           ),
-//                         ],
-//                       )),
-//                 );
-//               },
-//             )
-//           ],
-//         ),
-//       )),
-//     );
-//   }
-// }
+      setState(() {
+        _favoriteProducts = products;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Handle errors here if needed
+      setState(() {
+        _favoriteProducts = [];
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteProducts();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'SkinMatch',
+          style: TextStyle(
+            color: Colors.pink,
+            fontFamily: 'FleurDeLeah',
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _favoriteProducts.isEmpty
+                ? const Center(child: Text('No favorite products found.'))
+                : SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                          padding: const EdgeInsets.all(8),
+                          itemCount: _favoriteProducts.length,
+                          itemBuilder: (context, index) {
+                            Product product = _favoriteProducts[index];
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => DetailScreen(detail: product)));
+                              },
+                              child: Card(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16)),
+                                  margin: const EdgeInsets.all(6),
+                                  elevation: 1,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                          child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.network(
+                                          product.image,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 16, top: 8),
+                                        child: Text(
+                                          product.name,
+                                          style: const TextStyle(
+                                              fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 16, bottom: 8),
+                                        child: Text(
+                                          product.harga,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+      ),
+    );
+  }
+}
