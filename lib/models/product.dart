@@ -7,6 +7,7 @@ class Product {
   final String description;
   final String category;
   final String harga;
+  final String skintype;
 
   Product({
     required this.id,
@@ -17,6 +18,7 @@ class Product {
     required this.description,
     required this.category,
     required this.harga,
+    required this.skintype,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class Product {
       description: json['description'] ?? '',
       category: json['category'] ?? '',
       harga: json['harga'] ?? 'Harga tidak tersedia',
+      skintype: json['skintype'] ?? 'Tidak diketahui',
     );
   }
 
@@ -57,6 +60,7 @@ class Product {
       'description': description,
       'category': category,
       'harga': harga,
+      'skintype': skintype,
     };
   }
 }

@@ -4,21 +4,29 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.5.3
+  # Ini akan diatur secara otomatis setelah flutter upgrade.
+  # Namun, kita bisa menetapkannya agar Dart SDK di atas versi 3.5.3
+  # Biarkan sebagai any atau versi yang lebih tinggi dari 3.5.3 (misal: ^3.0.0 atau ^3.4.0)
+  # Jika Anda sudah upgrade Flutter SDK, Anda bisa biarkan ini seperti yang ada di template Flutter baru (misal: sdk: '>=3.0.0 <4.0.0')
+  sdk: '>=3.4.0 <4.0.0' # Mengasumsikan Anda akan upgrade Flutter ke versi 3.19.x atau 3.22.x yang menggunakan Dart 3.4.0+
 
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences:
-  firebase_core: ^2.31.1
-  http: ^1.4.0
-  cloud_firestore: ^4.17.4
-
+  
+  # Saran versi yang kompatibel dan stabil:
+  shared_preferences: ^2.2.3 # Versi stabil terbaru
+  firebase_core: ^2.29.0 # Versi stabil yang kompatibel dengan firebase_auth
+  http: ^1.2.1 # Versi stabil terbaru
+  cloud_firestore: ^4.17.0 # Versi stabil yang kompatibel
+  flutter_rating_bar: ^4.0.1 # Versi ini sudah oke, bisa dipertahankan
+  firebase_auth: ^4.19.0 # Versi stabil yang kompatibel dengan firebase_core terbaru
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
-
+  flutter_lints: ^3.0.0 # Atau ^4.0.0 jika Anda ingin linting yang lebih ketat dan terbaru
+  
 flutter:
   uses-material-design: true
   assets:
@@ -30,4 +38,3 @@ flutter:
     - family: FleurDeLeah
       fonts:
         - asset: fonts/FleurDeLeah-Regular.ttf
-        

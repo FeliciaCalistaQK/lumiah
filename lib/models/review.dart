@@ -3,50 +3,40 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Review {
   final String id;
   final String productId;
-  final String userId;
-  final String userName;
-  final String comment;
+  final String userName; // Tambahkan ini jika Anda ingin menampilkan nama pengguna
   final double rating;
-  final Timestamp timestamp;
+  final String comment;
+  final Timestamp timestamp; // Menggunakan Timestamp dari cloud_firestore
 
   Review({
     required this.id,
     required this.productId,
-    required this.userId,
     required this.userName,
-    required this.comment,
     required this.rating,
+    required this.comment,
     required this.timestamp,
   });
 
+  // Constructor untuk membuat objek Review dari Firestore DocumentSnapshot
   factory Review.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-    double parsedRating = 0.0;
-    if (data['rating'] is num) { // Cek apakah tipenya number
-      parsedRating = (data['rating'] as num).toDouble();
-    } else if (data['rating'] is String) { // Jika ternyata string, coba parse
-      parsedRating = double.tryParse(data['rating']) ?? 0.0;
-    }
-
     return Review(
       id: doc.id,
-      productId: data['productId'] ?? '',
-      userId: data['userId'] ?? '',
-      userName: data['userName'] ?? 'Anonim',
-      comment: data['comment'] ?? '',
-      rating: parsedRating, // Gunakan hasil parsing
-      timestamp: data['timestamp'] ?? Timestamp.now(),
+      productId: data['productId'] as String,
+      userName: data['userName'] as String? ?? 'Anonymous', // Default jika tidak ada
+      rating: (data['rating'] as num).toDouble(), // Pastikan double
+      comment: data['comment'] as String,
+      timestamp: data['timestamp'] as Timestamp,
     );
   }
 
+  // Method untuk mengonversi objek Review ke Map untuk Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'productId': productId,
-      'userId': userId,
       'userName': userName,
-      'comment': comment,
       'rating': rating,
+      'comment': comment,
       'timestamp': timestamp,
     };
   }
