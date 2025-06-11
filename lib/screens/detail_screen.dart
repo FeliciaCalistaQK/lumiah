@@ -116,28 +116,70 @@ class _DetailScreenState extends State<DetailScreen> {
                 const SizedBox(height: 8),
 
                 // Harga dan Rating Produk (menggunakan data dari widget.detail)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      widget.detail.harga, // Menampilkan harga dari model Product
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    Row(
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('reviews')
+                      .where('productId', isEqualTo: widget.detail.id)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error loading rating');
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            widget.detail.harga, // Menampilkan harga dari model Product
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: Colors.amber, size: 20),
+                              const SizedBox(width: 4),
+                              Text(
+                                '0.0', // No reviews yet
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }
+                    double totalRating = 0;
+                    final reviews = snapshot.data!.docs;
+                    for (var doc in reviews) {
+                      totalRating += (doc['rating'] as num).toDouble();
+                    }
+                    final averageRating = totalRating / reviews.length;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 20),
-                        const SizedBox(width: 4),
                         Text(
-                          '${widget.detail.rating.toStringAsFixed(1)}', // Menampilkan rating dari model Product
-                          style: const TextStyle(fontSize: 16),
+                          widget.detail.harga, // Menampilkan harga dari model Product
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 20),
+                            const SizedBox(width: 4),
+                            Text(
+                              averageRating.toStringAsFixed(1), // Dynamic average rating
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
 
