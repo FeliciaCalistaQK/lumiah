@@ -30,22 +30,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    final currentUser = FirebaseAuth.instance.currentUser;
-    print('Current user: $currentUser');
-    print('Current user email: ${currentUser?.email}');
-    setState(() {
-      userName = prefs.getString('userName') ?? "";
-      userEmail = currentUser?.email ?? "";
-      userSkinType = prefs.getString('userSkinType') ?? "";
-      userAge = prefs.getString('userAge') ?? "";
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currentUser = FirebaseAuth.instance.currentUser;
+      print('Current user: $currentUser');
+      print('Current user email: ${currentUser?.email}');
+      setState(() {
+        userName = prefs.getString('userName') ?? "";
+        userEmail = currentUser?.email ?? "";
+        userSkinType = prefs.getString('userSkinType') ?? "";
+        userAge = prefs.getString('userAge') ?? "";
 
-      _nameController.text = userName;
-      // Remove setting _emailController.text since email field is not editable
-      // _emailController.text = userEmail;
-      _skinTypeController.text = userSkinType;
-      _ageController.text = userAge;
-    });
+        _nameController.text = userName;
+        // Remove setting _emailController.text since email field is not editable
+        // _emailController.text = userEmail;
+        _skinTypeController.text = userSkinType;
+        _ageController.text = userAge;
+      });
+    } catch (e) {
+      print('Error loading user profile: $e');
+    }
   }
 
   @override
@@ -94,10 +98,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       //   label: 'Email',
                       //   controller: _emailController,
                       // ),
-                      ProfileField(
-                        label: 'Skin Type',
-                        controller: _skinTypeController,
-                      ),
+                      // Removed editable Skin Type field as per user request
+                      // ProfileField(
+                      //   label: 'Skin Type',
+                      //   controller: _skinTypeController,
+                      // ),
                       ProfileField(
                         label: 'Umur',
                         controller: _ageController,

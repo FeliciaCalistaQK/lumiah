@@ -35,11 +35,26 @@ class _BeautyProfileScreenState extends State<BeautyProfileScreen> {
   ];
 
   void _showInfoDialog(String info) {
+    final skin = skinTypes.firstWhere((element) => element['info'] == info);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Info'),
-        content: Text(info),
+        title: Text(skin['label'] ?? 'Info'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                skin['image'] ?? '',
+                width: 250,
+                height: 250,
+                fit: BoxFit.cover,
+              ),
+              SizedBox(height: 12),
+              Text(info),
+            ],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

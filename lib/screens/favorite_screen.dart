@@ -16,18 +16,19 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   bool _isLoading = true;
 
   Future<void> _loadFavoriteProducts() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> favoriteProductIds = prefs.getStringList('favoriteProducts') ?? [];
-
-    if (favoriteProductIds.isEmpty) {
-      setState(() {
-        _favoriteProducts = [];
-        _isLoading = false;
-      });
-      return;
-    }
-
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> favoriteProductIds = prefs.getStringList('favoriteProducts') ?? [];
+      print('Loaded favoriteProductIds: $favoriteProductIds');
+
+      if (favoriteProductIds.isEmpty) {
+        setState(() {
+          _favoriteProducts = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('products')
           .where('id', whereIn: favoriteProductIds)
@@ -42,7 +43,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      // Handle errors here if needed
+      print('Error loading favorite products: $e');
       setState(() {
         _favoriteProducts = [];
         _isLoading = false;

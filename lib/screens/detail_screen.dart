@@ -48,7 +48,12 @@ class _DetailScreenState extends State<DetailScreen> {
             content: Text('${widget.detail.name} added to favorites')));
       }
     });
-    await prefs.setStringList('favoriteProducts', favoriteProducts);
+    // Save favoriteProducts immediately after setState to ensure persistence
+    try {
+      await prefs.setStringList('favoriteProducts', favoriteProducts);
+    } catch (e) {
+      print('Error saving favoriteProducts to SharedPreferences: $e');
+    }
   }
 
   @override
