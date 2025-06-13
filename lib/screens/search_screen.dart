@@ -132,6 +132,66 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
 
+//     return GridView.builder(
+//       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//         crossAxisCount: 2,
+//         crossAxisSpacing: 16.0,
+//         mainAxisSpacing: 16.0,
+//         childAspectRatio: 0.75,
+//       ),
+//       itemCount: searchResults.length,
+//       itemBuilder: (context, index) {
+//         final product = searchResults[index];
+//         return GestureDetector(
+//           onTap: () {
+//             Navigator.push(
+//               context,
+//               MaterialPageRoute(
+//                 builder: (context) => DetailScreen(detail: product),
+//               ),
+//             );
+//           },
+//           child: Container(
+//             decoration: BoxDecoration(
+//               border: Border.all(color: Colors.pink.shade100, width: 2),
+//             ),
+//             child: Column(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 ClipRRect(
+//                   child: Image.network(
+//                     product.image,
+//                     width: 200,
+//                     height: 200,
+//                     fit: BoxFit.cover,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 8),
+//                 Text(
+//                   product.name,
+//                   style: const TextStyle(
+//                     color: Colors.pink,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                   textAlign: TextAlign.center,
+//                 ),
+//                 const SizedBox(height: 4),
+//                 Text(
+//                   '${product.rating} ★ ${product.reviews} Reviews',
+//                   style: const TextStyle(
+//                     color: Colors.black54,
+//                     fontSize: 12,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -193,7 +253,12 @@ class _SearchScreenState extends State<SearchScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
+
+                builder: (context) => const DetailScreen(),
+                settings: RouteSettings(arguments: product),
+
                 builder: (context) => DetailScreen(detail: product),
+
               ),
             );
           },
@@ -237,3 +302,4 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
+

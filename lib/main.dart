@@ -9,6 +9,8 @@ import 'package:skin_match/screens/login_screen.dart';
 import 'package:skin_match/screens/main_screen.dart'; // Ini adalah Home Screen Anda
 import 'package:skin_match/screens/register_screen.dart';
 import 'package:skin_match/screens/home_screen.dart'; // Tambahkan import untuk HomeScreen jika berbeda dari MainScreen
+import 'package:skin_match/screens/detail_screen.dart'; // Import DetailScreen
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,10 +59,14 @@ class SkinMatchApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const MainScreen(), // Tetap definisikan untuk navigasi manual jika diperlukan
         '/register': (context) => const RegisterScreen(),
+
         // Jika HomeScreen dan MainScreen adalah hal yang sama, cukup gunakan salah satunya.
         // Jika HomeScreen adalah bagian dari MainScreen (misal, tab di bottom nav), maka '/home' bisa dihapus
         // atau diarahkan ke MainScreen.
         '/actual_home_content': (context) => const HomeScreen(), // Contoh jika HomeScreen adalah konten sebenarnya
+
+        '/detail': (context) => const DetailScreen(),
+
       },
     );
   }
