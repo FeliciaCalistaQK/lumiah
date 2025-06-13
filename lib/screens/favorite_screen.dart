@@ -1,33 +1,37 @@
-// import 'package:flutter/material.dart';
-// import 'package:skin_match/data/product_data.dart';
-// import 'package:skin_match/models/product.dart';
-// import 'package:skin_match/screens/detail_screen.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:skin_match/models/product.dart';
+import 'detail_screen.dart';
 
-// class FavoriteScreen extends StatefulWidget {
-//   const FavoriteScreen({super.key});
+class FavoriteScreen extends StatefulWidget {
+  const FavoriteScreen({super.key});
 
-//   @override
-//   State<FavoriteScreen> createState() => _FavoriteScreenState();
-// }
+  @override
+  State<FavoriteScreen> createState() => _FavoriteScreenState();
+}
 
-<<<<<<< Updated upstream
+
 // class _FavoriteScreenState extends State<FavoriteScreen> {
 //   List<Product> _favoriteProducts = [];
 
-//   Future<void> _loadFavoriteProduct() async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     List<String> favoriteProductNames = prefs.getStringList('favoriteProducts') ?? [];
+class _FavoriteScreenState extends State<FavoriteScreen> {
+  List<Product> _favoriteProducts = [];
+  bool _isLoading = true;
 
-//     setState(() {
-//       _favoriteProducts = productsByCategory.entries
-//           .expand((entry) => entry.value)  // Meratakan semua produk
-//           .where((product) => favoriteProductNames.contains(product.name))  // Filter berdasarkan nama
-//           .toList();  // Mengubah hasil menjadi List<Product>
-//     });
 
-//   }
-=======
+  Future<void> _loadFavoriteProducts() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> favoriteProductIds = prefs.getStringList('favoriteProducts') ?? [];
+
+    if (favoriteProductIds.isEmpty) {
+      setState(() {
+        _favoriteProducts = [];
+        _isLoading = false;
+      });
+      return;
+    }
+
 class _FavoriteScreenState extends State<FavoriteScreen> {
   List<Product> _favoriteProducts = [];
   bool _isLoading = true;
@@ -50,16 +54,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           .collection('products')
           .where('id', whereIn: _favoriteProductIds)
           .get();
->>>>>>> Stashed changes
 
-//   @override
-//   void initState() {
-//     // TODO: implement initState
-//     super.initState();
-//     _loadFavoriteProduct();
-//   }
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .where('id', whereIn: favoriteProductIds)
+          .get();
 
-<<<<<<< Updated upstream
+
+      List<Product> products = snapshot.docs.map((doc) {
+        return Product.fromJson(doc.data() as Map<String, dynamic>);
+      }).toList();
+
 //   @override
 //    Widget build(BuildContext context) {
 //     return Scaffold(
@@ -143,7 +149,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 //     );
 //   }
 // }
-=======
+
       setState(() {
         _favoriteProducts = products;
         _isLoading = false;
@@ -163,6 +169,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     _loadFavoriteProducts();
   }
 
+
   void _toggleFavorite(Product product) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -176,6 +183,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     });
     await prefs.setStringList('favoriteProducts', _favoriteProductIds);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -210,15 +218,21 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           itemCount: _favoriteProducts.length,
                           itemBuilder: (context, index) {
                             Product product = _favoriteProducts[index];
+
                             bool isFavorite = _favoriteProductIds.contains(product.id);
+
                             return InkWell(
                               onTap: () {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
+
                                         builder: (context) => const DetailScreen(),
                                         settings: RouteSettings(arguments: product),
                                       ));
+
+                                        builder: (context) => DetailScreen(detail: product)));
+
                               },
                               child: Card(
                                   shape: RoundedRectangleBorder(
@@ -231,6 +245,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                       Expanded(
                                           child: ClipRRect(
                                         borderRadius: BorderRadius.circular(16),
+
                                         child: Stack(
                                           children: [
                                             Image.network(
@@ -279,4 +294,38 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 }
->>>>>>> Stashed changes
+
+
+                                        child: Image.network(
+                                          product.image,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 16, top: 8),
+                                        child: Text(
+                                          product.name,
+                                          style: const TextStyle(
+                                              fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 16, bottom: 8),
+                                        child: Text(
+                                          product.harga,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+      ),
+    );
+  }
+}
+

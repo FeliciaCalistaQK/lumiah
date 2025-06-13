@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skin_match/screens/detail_screen.dart';
 import '../models/product.dart';
-// import '../data/product_data.dart'; // Kita tidak akan menggunakan ini lagi
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
 
@@ -158,7 +157,7 @@ class CategoryDetailScreen extends StatelessWidget {
             return Center(child: Text('Tidak ada produk untuk kategori ini.'));
           }
 
-<<<<<<< Updated upstream
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: GridView.builder(
@@ -177,7 +176,7 @@ class CategoryDetailScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => DetailScreen(detail: product),
-=======
+
           // Fetch review counts for all products
           return FutureBuilder<QuerySnapshot>(
             future: FirebaseFirestore.instance
@@ -223,6 +222,7 @@ class CategoryDetailScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
+
                             builder: (context) => const DetailScreen(),
                             settings: RouteSettings(arguments: product),
                           ),
@@ -261,7 +261,6 @@ class CategoryDetailScreen extends StatelessWidget {
                             ),
                           ],
                         ),
->>>>>>> Stashed changes
                       ),
                     );
                   },
@@ -286,22 +285,51 @@ class CategoryDetailScreen extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.pink,
                             fontWeight: FontWeight.bold,
+
+                            builder: (context) => DetailScreen(detail: product),
+
                           ),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.pink.shade100, width: 2),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          '${product.rating} ★ ${product.reviews} Reviews',
-                          style: TextStyle(
-                            color: Colors.black54,
-                            fontSize: 12,
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                              child: Image.network(
+                                product.image,
+                                width: 200,
+                                height: 200,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              product.name,
+                              style: TextStyle(
+                                color: Colors.pink,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              '${averageRating.toStringAsFixed(1)} ★ $reviewCount Reviews',
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           );
         },
       ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skin_match/screens/beautyprofile_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,10 +18,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool isEditMode = false;
   // State untuk menyimpan data pengguna
-  String userName = "Lumiah"; // Kosongkan data awal
-  String userEmail = "Lumiah@gmail.com";
-  String userSkinType = "Oily Skin";
-  String userAge = "21";
+  String userName = ""; // Kosongkan data awal
+  String userEmail = "";
+  String userSkinType = "";
+  String userAge = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    print('Current user: $currentUser');
+    print('Current user email: ${currentUser?.email}');
+    setState(() {
+      userName = prefs.getString('userName') ?? "";
+      userEmail = currentUser?.email ?? "";
+      userSkinType = prefs.getString('userSkinType') ?? "";
+      userAge = prefs.getString('userAge') ?? "";
+
+      _nameController.text = userName;
+      // Remove setting _emailController.text since email field is not editable
+      // _emailController.text = userEmail;
+      _skinTypeController.text = userSkinType;
+      _ageController.text = userAge;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +89,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'Nama',
                         controller: _nameController,
                       ),
-                      ProfileField(
-                        label: 'Email',
-                        controller: _emailController,
-                      ),
+                      // Remove editable email field to make it read-only
+                      // ProfileField(
+                      //   label: 'Email',
+                      //   controller: _emailController,
+                      // ),
                       ProfileField(
                         label: 'Skin Type',
                         controller: _skinTypeController,
@@ -85,31 +114,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
             SizedBox(height: 20),
 
-            ElevatedButton.icon(
-              onPressed: () {
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+              onPressed: () async {
                 setState(() {
                   if (isEditMode) {
                     // Simpan data dari TextEditingController ke state hanya jika disimpan
                     userName = _nameController.text;
-                    userEmail = _emailController.text;
+                    
                     userSkinType = _skinTypeController.text;
                     userAge = _ageController.text;
                   }
                   isEditMode = !isEditMode; // Toggle mode
                 });
+                if (!isEditMode) {
+                  // Save data persistently when exiting edit mode
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('userName', userName);
+                  // Remove saving email to SharedPreferences as it comes from FirebaseAuth
+                  // await prefs.setString('userEmail', userEmail);
+                  await prefs.setString('userSkinType', userSkinType);
+                  await prefs.setString('userAge', userAge);
+                }
               },
-              icon: Icon(
-                isEditMode ? Icons.check : Icons.edit,
-                color: Colors.white,
-              ),
-              label: Text(isEditMode ? 'Save' : 'Edit Profile', style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink,
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  icon: Icon(
+                    isEditMode ? Icons.check : Icons.edit,
+                    color: Colors.white,
+                  ),
+                  label: Text(isEditMode ? 'Save' : 'Edit Profile', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pink,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
-              ),
+                SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final selectedSkinType = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const BeautyProfileScreen(),
+                      ),
+                    );
+                    if (selectedSkinType != null) {
+                      setState(() {
+                        userSkinType = selectedSkinType;
+                        _skinTypeController.text = selectedSkinType;
+                      });
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('userSkinType', selectedSkinType);
+                    }
+                  },
+                  icon: Icon(
+                    Icons.spa,
+                    color: Colors.white,
+                  ),
+                  label: Text('Beauty profile', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pink,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             SizedBox(height: 10),

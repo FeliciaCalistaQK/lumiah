@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart'; // Tambahkan package ini jika belum ada
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:skin_match/models/review.dart'; // Import model Review jika kamu butuh di sini juga
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth; // Untuk mendapatkan nama pengguna atau ID pengguna
+import 'package:skin_match/models/review.dart';
+import 'package:skin_match/models/user.dart'; // Import model Review
 
 class ReviewPage extends StatefulWidget {
-  final String productId; // Menerima ID produk
+  final String productId;
 
   const ReviewPage({super.key, required this.productId});
 
@@ -12,114 +15,138 @@ class ReviewPage extends StatefulWidget {
 }
 
 class _ReviewPageState extends State<ReviewPage> {
-  final TextEditingController _reviewController = TextEditingController();
-  double _currentRating = 0; // Rating yang diberikan pengguna
+  double _currentRating = 3.0; // Nilai rating awal
+  final TextEditingController _commentController = TextEditingController();
+  bool _isLoading = false;
 
   // Fungsi untuk menyimpan review ke Firestore
   Future<void> _submitReview() async {
-    if (_reviewController.text.isEmpty || _currentRating == 0) {
+    if (_commentController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a comment and a rating.')),
+        const SnackBar(content: Text('Komentar tidak boleh kosong!')),
       );
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      // Menambahkan review ke koleksi 'reviews' di Firestore
-      await FirebaseFirestore.instance.collection('reviews').add({
-        'productId': widget.productId, // ID produk dari widget
-        'userId': 'user_anonim_123', // Kamu bisa ganti ini dengan ID user yang sebenarnya jika ada autentikasi
-        'userName': 'Pengguna Anonim', // Nama pengguna
-        'comment': _reviewController.text,
-        'rating': _currentRating,
-        'timestamp': FieldValue.serverTimestamp(), // Untuk mendapatkan waktu server
-      });
+      // Dapatkan pengguna saat ini. Anda perlu mengimplementasikan Firebase Auth
+      // Jika Anda tidak menggunakan Firebase Auth, Anda bisa menggunakan nama default
+      // atau meminta pengguna memasukkan nama mereka.
+      firebase_auth.User? currentUser = firebase_auth.FirebaseAuth.instance.currentUser;
+      String userName = currentUser?.displayName ?? currentUser?.email ?? 'Anonymous User';
+      // Atau, jika Anda ingin pengguna memasukkan namanya:
+      // String userName = _userNameController.text; // Anda perlu controller terpisah untuk nama
+
+      // Buat objek Review
+      final newReview = Review(
+        id: '', // ID akan diisi oleh Firestore
+        productId: widget.productId,
+        userName: userName,
+        rating: _currentRating,
+        comment: _commentController.text,
+        timestamp: Timestamp.now(), // Gunakan Timestamp.now()
+      );
+
+      // Simpan ke koleksi 'reviews' di Firestore
+      await FirebaseFirestore.instance.collection('reviews').add(newReview.toFirestore());
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Review submitted successfully!')),
+        const SnackBar(content: Text('Review berhasil ditambahkan!')),
       );
-      Navigator.pop(context); // Kembali ke halaman detail produk
+      Navigator.pop(context); // Kembali ke halaman sebelumnya setelah submit
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit review: $e')),
+        SnackBar(content: Text('Gagal menambahkan review: $e')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Review',
-          style: TextStyle(
-            color: Colors.pink,
-            fontFamily: 'FleurDeLeah',
-            fontSize: 24,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: const Text('Add Review'),
+        backgroundColor: Colors.pink.shade100,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Beri Rating Produk Ini:',
+              'Berikan rating Anda:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            // Widget untuk memilih rating (bintang)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _currentRating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 40,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _currentRating = (index + 1).toDouble();
-                    });
-                  },
-                );
-              }),
+            Center(
+              child: RatingBar.builder(
+                initialRating: _currentRating,
+                minRating: 1,
+                direction: Axis.horizontal,
+                allowHalfRating: true,
+                itemCount: 5,
+                itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                itemBuilder: (context, _) => const Icon(
+                  Icons.star,
+                  color: Colors.amber,
+                ),
+                onRatingUpdate: (rating) {
+                  setState(() {
+                    _currentRating = rating;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 24),
+            const Text(
+              'Tulis komentar Anda:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
             TextField(
-              controller: _reviewController,
+              controller: _commentController,
               maxLines: 5,
               decoration: InputDecoration(
                 hintText: 'Tulis review Anda di sini...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                fillColor: Colors.grey[100],
                 filled: true,
-                fillColor: Colors.pink.shade50,
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _submitReview,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _submitReview,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pink,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Kirim Review',
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Submit Review',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
               ),
             ),
           ],
