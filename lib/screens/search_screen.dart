@@ -197,6 +197,7 @@
 //       );
 //     }
 
+<<<<<<< Updated upstream
 //     return GridView.builder(
 //       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
 //         crossAxisCount: 2,
@@ -256,3 +257,111 @@
 //     );
 //   }
 // }
+=======
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Search History',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.pink,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: ListView.builder(
+            itemCount: searchHistory.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                leading: const Icon(Icons.history, color: Colors.pink),
+                title: Text(searchHistory[index]),
+                onTap: () => _onHistoryTap(searchHistory[index]),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.grey),
+                  onPressed: () {
+                    setState(() {
+                      searchHistory.removeAt(index);
+                    });
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (searchResults.isEmpty) {
+      return const Center(
+        child: Text(
+          'No products found',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      itemCount: searchResults.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
+        childAspectRatio: 0.75,
+      ),
+      itemBuilder: (context, index) {
+        final product = searchResults[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DetailScreen(),
+                settings: RouteSettings(arguments: product),
+              ),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.pink.shade100, width: 2),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ClipRRect(
+                  child: Image.network(
+                    product.image,
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  product.name,
+                  style: const TextStyle(
+                    color: Colors.pink,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${product.rating} ★ ${product.reviews} Reviews',
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+>>>>>>> Stashed changes

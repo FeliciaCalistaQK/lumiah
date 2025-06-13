@@ -6,9 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:skin_match/models/review.dart'; // Import model Review
 
 class DetailScreen extends StatefulWidget {
-  final Product detail;
-
-  const DetailScreen({super.key, required this.detail});
+  const DetailScreen({super.key});
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -17,35 +15,46 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   bool _isFavorite = false;
 
+  Product? detail;
+
   @override
   void initState() {
     super.initState();
-    _loadFavoriteStatus();
+    final args = WidgetsBinding.instance.addPostFrameCallback((_) {
+      final routeArgs = ModalRoute.of(context)?.settings.arguments;
+      if (routeArgs != null && routeArgs is Product) {
+        setState(() {
+          detail = routeArgs;
+        });
+        _loadFavoriteStatus();
+      }
+    });
   }
 
   Future<void> _loadFavoriteStatus() async {
+    if (detail == null) return;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> favoriteProducts = prefs.getStringList('favoriteProducts') ?? [];
     setState(() {
-      // Menggunakan ID produk untuk favorit agar lebih unik
-      _isFavorite = favoriteProducts.contains(widget.detail.id);
+      _isFavorite = favoriteProducts.contains(detail!.id);
     });
   }
 
   Future<void> _toggleFavorite() async {
+    if (detail == null) return;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> favoriteProducts = prefs.getStringList('favoriteProducts') ?? [];
     setState(() {
       if (_isFavorite) {
-        favoriteProducts.remove(widget.detail.id); // Hapus berdasarkan ID
+        favoriteProducts.remove(detail!.id);
         _isFavorite = false;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('${widget.detail.name} removed from favorites')));
+            content: Text('${detail!.name} removed from favorites')));
       } else {
-        favoriteProducts.add(widget.detail.id); // Tambahkan berdasarkan ID
+        favoriteProducts.add(detail!.id);
         _isFavorite = true;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('${widget.detail.name} added to favorites')));
+            content: Text('${detail!.name} added to favorites')));
       }
     });
     await prefs.setStringList('favoriteProducts', favoriteProducts);
@@ -72,37 +81,24 @@ class _DetailScreenState extends State<DetailScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Foto Produk
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    widget.detail.image,
-                    width: 100,
-                    height: 300,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Nama Produk dan Favorit
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded( // Gunakan Expanded agar teks tidak overlap
-                      child: Text(
-                        widget.detail.name,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+        child: detail == null
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.network(
+                          detail!.image,
+                          width: 100,
+                          height: 300,
+                          fit: BoxFit.cover,
                         ),
                       ),
+<<<<<<< Updated upstream
                     ),
                     IconButton(
                       onPressed: _toggleFavorite,
@@ -260,21 +256,232 @@ class _DetailScreenState extends State<DetailScreen> {
                                           style: const TextStyle(fontSize: 14, color: Colors.black87),
                                         ),
                                       ],
+=======
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  detail!.name,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                if (detail!.skintype.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Skin Type: ${detail!.skintype}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey,
+>>>>>>> Stashed changes
                                     ),
                                   ),
                                 ],
-                              ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: _toggleFavorite,
+                            icon: Icon(
+                              _isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: _isFavorite ? Colors.red : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('reviews')
+                            .where('productId', isEqualTo: detail!.id)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return const Text('Error loading rating');
+                          }
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  detail!.harga,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                                Row(
+                                  children: const [
+                                    Icon(Icons.star, color: Colors.amber, size: 20),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '0.0',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             );
-                          },
+                          }
+                          double totalRating = 0;
+                          final reviews = snapshot.data!.docs;
+                          for (var doc in reviews) {
+                            totalRating += (doc['rating'] as num).toDouble();
+                          }
+                          final averageRating = totalRating / reviews.length;
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                detail!.harga,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star, color: Colors.amber, size: 20),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    averageRating.toStringAsFixed(1),
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        detail!.description,
+                        style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReviewPage(productId: detail!.id),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pink.shade100,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ],
-                    );
-                  },
+                        child: const Text(
+                          'Add Review',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('reviews')
+                            .where('productId', isEqualTo: detail!.id)
+                            .orderBy('timestamp', descending: true)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(child: Text('Error loading reviews: \${snapshot.error}'));
+                          }
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return const Center(child: Text('Belum ada review untuk produk ini.'));
+                          }
+                          double totalRating = 0;
+                          final List<Review> reviews = snapshot.data!.docs.map((doc) {
+                            final review = Review.fromFirestore(doc);
+                            totalRating += review.rating;
+                            return review;
+                          }).toList();
+                          final int numberOfReviews = reviews.length;
+                          final double averageRating = numberOfReviews > 0 ? totalRating / numberOfReviews : 0.0;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Reviews (\$numberOfReviews)',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: reviews.length,
+                                itemBuilder: (context, index) {
+                                  final review = reviews[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12.0),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const CircleAvatar(radius: 20, child: Icon(Icons.person)),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                review.userName,
+                                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  const Icon(Icons.star, color: Colors.amber, size: 16),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '\${review.rating.toStringAsFixed(1)}',
+                                                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    '\${review.timestamp.toDate().day}/\${review.timestamp.toDate().month}/\${review.timestamp.toDate().year}',
+                                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                review.comment,
+                                                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }
